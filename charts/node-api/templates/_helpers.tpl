@@ -30,3 +30,11 @@ Create chart name and version as used by the chart label.
 {{- define "chart.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{- define "node-api.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+    {{ default .Values.name .Values.serviceAccount.name }}
+{{- else -}}
+    {{ default "default" .Values.serviceAccount.name }}
+{{- end -}}
+{{- end -}}

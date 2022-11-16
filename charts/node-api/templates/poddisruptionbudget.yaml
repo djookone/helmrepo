@@ -1,4 +1,4 @@
-{{- if gt .Values.pod.replicas 1.0 }}
+{{ if gt .Values.pod.replicas 1.0 -}}
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
@@ -8,6 +8,7 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
   name: {{ .Values.name }}
+  namespace: {{ .Release.Namespace }}
 spec:
   selector:
     matchLabels:
