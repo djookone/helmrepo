@@ -8,9 +8,6 @@ metadata:
     chart: {{ template "chart.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
-    {{- if .Values.metrics.enabled }}
-    metrics: {{ default "prometheus" .Values.metrics.label }}
-    {{- end }}
 spec:
   replicas: {{ .Values.pod.replicas }}
   strategy:
@@ -25,134 +22,80 @@ spec:
       labels:
         app: {{ .Values.name }}
         release: {{ .Release.Name }}
-      {{- if .Values.pod.annotations }}
       annotations:
-        {{ toYaml .Values.pod.annotations | indent 8 | trim }}
-      {{- end }}
+        {{- if .Values.pod.annotations }}
+{{ toYaml .Values.pod.annotations | indent 8 }}
+        {{ end }}
     spec:
       {{- if .Values.global.priorityClassName }}
       priorityClassName: {{ .Values.global.priorityClassName }}
       {{- end }}
-      serviceAccountName: {{ template "node-api.serviceAccountName" . }}
       containers:
-      - name: {{ .Values.name }}
-        {{- if .Values.image.digest }}
-        image: {{ .Values.image.repository }}@{{ .Values.image.digest }}
-        {{- else }}
-        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
-        {{- end }}
-        imagePullPolicy: {{ .Values.global.pullPolicy }}
-        {{- if .Values.pod.workingDir }}
-        workingDir: {{ .Values.pod.workingDir }}
-        {{- end }}
-        {{- if .Values.pod.command }}
-        command:
-        {{- range .Values.pod.command }}
-         - {{ . | quote }}
-        {{- end }}
-        {{- end }}
-        env:
-        - name: NODE_ENV
-          {{- if .Values.global.env }}
-          value: {{ .Values.global.env }}
-          {{- else }}
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
+        - name: {{ .Values.name }}
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.global.pullPolicy }}
+          {{- if .Values.pod.command }}
+          command:
+            {{- range .Values.pod.command }}
+             - {{ . | quote }}
+            {{- end }}
           {{- end }}
-        {{- if .Values.pod.env }}
-        {{- range .Values.pod.env.values }}
-        - name: {{ .name }}
-          value: "{{ .value }}"
-        {{- end }}
-        {{- range .Values.pod.env.secrets }}
-        - name: {{ .key }}
-          valueFrom:
-            secretKeyRef:
-              name: {{ .name }}
-              key: {{ .key }}
-        {{- end }}
-        {{- end }}
-        {{- if .Values.global.configHash }}
-        - name: CONFIG_HASH
-          value: {{ .Values.global.configHash }}
-        {{- end }}
-        ports:
-        - name: http
-          containerPort: {{ default .Values.service.port .Values.service.targetPort }}
-          protocol: TCP
-        {{- if .Values.metrics.enabled }}
-        - name: metrics
-          containerPort: {{ .Values.metrics.port }}
-          protocol: TCP
-        {{- end }}
-        livenessProbe:
-          httpGet:
-            path: {{ .Values.healthCheck.path }}
-            port: {{ default (default .Values.service.port .Values.service.targetPort) .Values.healthCheck.port }}
-          initialDelaySeconds: {{ .Values.healthCheck.initialDelaySeconds }}
-          periodSeconds: {{ .Values.healthCheck.periodSeconds }}
-          timeoutSeconds: {{ .Values.healthCheck.timeoutSeconds }}
-          failureThreshold: {{ .Values.healthCheck.failureThreshold }}
-        readinessProbe:
-          httpGet:
-            path: {{ .Values.healthCheck.path }}
-            port: {{ default (default .Values.service.port .Values.service.targetPort) .Values.healthCheck.port }}
-          initialDelaySeconds: {{ .Values.healthCheck.initialDelaySeconds }}
-          periodSeconds: {{ .Values.healthCheck.periodSeconds }}
-          timeoutSeconds: {{ .Values.healthCheck.timeoutSeconds }}
-          failureThreshold: {{ .Values.healthCheck.failureThreshold }}
-        resources:
-          {{ toYaml .Values.resources | indent 10 | trim }}
-        volumeMounts:
-        {{- range .Values.pod.extraConfigmapMounts }}
-        - name: {{ .name }}
-          mountPath: {{ .mountPath }}
-          subPath: {{ .subPath | default "" }}
-          readOnly: {{ .readOnly | default "true" }}
-        {{- end }}
-        {{- range .Values.pod.extraSecretMounts }}
-        - name: {{ .name }}
-          mountPath: {{ .mountPath }}
-          readOnly: {{ .readOnly | default "true" }}
-        {{- end }}
-        {{- if .Values.pod.configMap }}
-        - name: {{ .Values.pod.configMap.name }}
-          mountPath: {{ .Values.pod.configMap.path }}
-        {{- if .Values.pod.configMap.key }}
-          subPath: {{ .Values.pod.configMap.key }}
-        {{- end }}
-        {{- end }}
+          env:
+            - name: NODE_ENV
+{{ if .Values.global.env }}
+              value: {{ .Values.global.env }}
+{{ else }}
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+{{ end }}
+{{ if .Values.pod.env }}
+{{- range .Values.pod.env.values }}
+            - name: {{ .name }}
+              value: {{ .value }}
+{{- end }}
+{{- range .Values.pod.env.secrets }}
+            - name: {{ .key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .name }}
+                  key: {{ .key }}
+{{- end }}
+{{ end }}
+{{ if .Values.pod.configHash }}
+            - name: CONFIG_HASH
+              value: {{ .Values.pod.configHash }}
+{{ end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.healthCheck.path }}
+              port: {{ default .Values.service.port .Values.service.targetPort }}
+            initialDelaySeconds: {{ .Values.healthCheck.initialDelay }}
+            periodSeconds: {{ .Values.healthCheck.periodSeconds }}
+            timeoutSeconds: {{ .Values.healthCheck.timeoutSeconds }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.healthCheck.path }}
+              port: {{ default .Values.service.port .Values.service.targetPort }}
+            initialDelaySeconds: {{ .Values.healthCheck.initialDelay }}
+            periodSeconds: {{ .Values.healthCheck.periodSeconds }}
+            timeoutSeconds: {{ .Values.healthCheck.timeoutSeconds }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+{{ if .Values.pod.configMap }}
+          volumeMounts:
+            - name: {{ .Values.pod.configMap.name }}
+              mountPath: {{ .Values.pod.configMap.path }}
       volumes:
-      {{- range .Values.pod.extraConfigmapMounts }}
-      - name: {{ .name }}
-        configMap:
-          name: {{ .configMap }}
-      {{- end }}
-      {{- range .Values.pod.extraSecretMounts }}
-      - name: {{ .name }}
-        secret:
-          secretName: {{ .secretName }}
-          defaultMode: {{ .defaultMode | default "256" }}
-      {{- end }}
-      {{- if .Values.pod.configMap }}
-      - name: {{ .Values.pod.configMap.name }}
-        configMap:
-          name: {{ .Values.pod.configMap.name }}
-      {{- end }}
-      {{- if .Values.global.pullSecrets }}
+        - name: {{ .Values.pod.configMap.name }}
+          configMap:
+            name: {{ .Values.pod.configMap.name }}
+{{ end }}
+{{- if .Values.global.pullSecrets }}
       imagePullSecrets:
-      {{ toYaml .Values.global.pullSecrets | indent 6 | trim }}
-      {{- end }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{ toYaml . | indent 8 | trim }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{ toYaml . | indent 8 | trim }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{ toYaml . | indent 8 | trim }}
-      {{- end }}
+{{ toYaml .Values.global.pullSecrets | indent 6 }}
+{{ end }}
