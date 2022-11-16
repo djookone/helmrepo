@@ -1,5 +1,5 @@
 {{ if .Values.scale.enabled -}}
-apiVersion: autoscaling/v2beta1
+apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ .Values.name }}
@@ -22,13 +22,6 @@ spec:
       targetAverageUtilization: {{ .Values.scale.cpu }}
   {{- end }}
   {{- if .Values.scale.memory }}
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: {{ .Values.scale.memory }}
-
   - type: Resource
     resource:
       name: memory
