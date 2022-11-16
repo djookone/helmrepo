@@ -3,11 +3,20 @@ entries:
   node-api:
   - apiVersion: v1
     appVersion: "1.1"
-    created: "2022-11-16T15:00:12.386002673+01:00"
+    created: "2022-11-16T15:59:48.951969043+01:00"
     description: Neo9 NodeJS API Chart
     digest: 16f6314143124666215bd9e8b5e15e5ff50a02203f780b96ee737046a1baf109
     name: node-api
     urls:
-    - https://djookone.github.com/helmrepo/node-api-1.16.0.tgz
+    - https://djookone.github.io/helmrepo/node-api-1.16.0.tgz
     version: 1.16.0
-generated: "2022-11-16T15:00:12.384297726+01:00"
+  - apiVersion: v1
+    appVersion: "1.1"
+    created: "2022-11-16T15:59:48.951070234+01:00"
+    description: Neo9 NodeJS API Chart
+    digest: 597a9af9801f652255569eb48ccd42d02d2aadfd07ab7ac7a5b71a19fcfa6460
+    name: node-api
+    urls:
+    - https://djookone.github.io/helmrepo/node-api-1.1.1.tgz
+    version: 1.1.1
+generated: "2022-11-16T15:59:48.950189225+01:00"
