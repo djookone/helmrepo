@@ -1,12 +1,12 @@
 {{ if .Values.scale.enabled }}
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ .Values.name }}
+  name:  {{ .Values.name }}
   namespace: {{ .Release.Namespace }}
 spec:
   scaleTargetRef:
-    apiVersion: extensions/v1
+    apiVersion: apps/v1
     kind: Deployment
     name: {{ .Values.name }}
   minReplicas: {{ .Values.scale.min }}
@@ -18,6 +18,6 @@ spec:
       targetAverageUtilization: {{ .Values.scale.cpu }}
   - type: Resource
     resource:
-      name: memory
-      targetAverageValue: {{ .Values.scale.memory }}
+      name: memory 
+      targetAverageUtilization: {{ .Values.scale.memory }}
 {{ end }}
