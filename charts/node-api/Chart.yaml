@@ -2,4 +2,4 @@ apiVersion: v1
 appVersion: "1.1"
 description: Neo9 NodeJS API Chart
 name: node-api
-version: 1.16.0
+version: 1.1.1

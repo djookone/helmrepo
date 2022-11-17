@@ -8,32 +8,17 @@ metadata:
     chart: {{ template "chart.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
-    {{- if .Values.metrics }}
-    metrics: {{ default "prometheus" .Values.metrics.label }}
-    {{- end }}
-  {{- if .Values.service.annotations }}
   annotations:
-    {{ toYaml .Values.service.annotations | indent 4 | trim }}
-  {{- end }}
+    {{- if .Values.service.annotations }}
+    {{ toYaml .Values.service.annotations | indent 4 }}
+    {{ end }}
 spec:
   type: {{ .Values.service.type }}
   ports:
-  - port: {{ .Values.service.port }}
-    targetPort: {{ default .Values.service.port .Values.service.targetPort }}
-    protocol: TCP
-    name: http
-  {{- if .Values.metrics.enabled }}
-  - port: {{ .Values.metrics.port }}
-    targetPort: {{ default .Values.metrics.port .Values.metrics.targetPort }}
-    protocol: TCP
-    name: metrics
-  {{- end }}
-  {{- if .Values.metrics.serviceMonitor.envoy.enabled }}
-  - port: {{ .Values.metrics.serviceMonitor.envoy.port }}
-    targetPort: {{ .Values.metrics.serviceMonitor.envoy.targetPort }}
-    protocol: TCP
-    name: envoy-metrics
-  {{- end }}
+    - port: {{ .Values.service.port }}
+      targetPort: {{ default .Values.service.port .Values.service.targetPort }}
+      protocol: TCP
+      name: http
   selector:
     app: {{ .Values.name }}
     release: {{ .Release.Name }}
