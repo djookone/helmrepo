@@ -1,0 +1,56 @@
+name: name
+
+global:
+  pullSecrets: []
+  pullPolicy: IfNotPresent
+  # priorityClassName: ""
+  istio:
+    enabled: false
+    retries: 2
+
+image:
+  repository: repo
+  tag: latest
+
+pod:
+  replicas: 1
+  minAvailable: 1
+  annotations: {}
+  # command: []
+  # Rolling update via specific config hash
+  # configHash:
+
+  # Mount config map volumes
+  # configMap:
+  #   name:
+  #   path:
+
+
+## Configure resource requests and limits
+## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+##
+resources:
+ limits:
+   memory: 180M
+ requests:
+   memory: 180M
+   cpu: 35m
+
+healthCheck:
+  path: /ping
+  initialDelay: 3
+  periodSeconds: 10
+  timeoutSeconds: 1
+
+service:
+  type: ClusterIP
+  port: 80
+  annotations: {}
+  labels: {}
+
+scale:
+  enabled: false
+  min: 1
+  max: 5
+  cpu: 100
+  memory: 150M
